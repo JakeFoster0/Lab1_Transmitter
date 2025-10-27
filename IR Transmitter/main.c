@@ -6,16 +6,14 @@
 
 //Tx is used to show when the signal is 'active', thats when the 38kHz signal will actually be transmitted
 
-//talk to tarter to get wiring diagram again
-
 #include <msp430.h>
 #include <stdint.h>
 
-#define CMD_STOP    0x00
-#define CMD_FWD     0x01
-#define CMD_BCK     0x02
-#define CMD_LFT     0x03
-#define CMD_RGT     0x04
+#define CMD_STOP 0xFF
+#define CMD_FWD 0xF0
+#define CMD_BCK 0xF1
+#define CMD_LFT 0xF2
+#define CMD_RGT 0xF3
 
 void uart_init(void)
 {
@@ -28,10 +26,9 @@ void uart_init(void)
     UCA0CTL1 |= UCSSEL_2; //use SMCLK
 
     //set baud rate to 2400
-    UCA0BR0 = 104; //16 MHz / 2400 = 6666.67, UCA0BR0 = 6666 & 0xFF
-    UCA0BR1 = 0; //UCA0BR1 = 6666 >> 8
-    UCA0MCTL = UCBRS_1 | UCBRF_0 | UCOS16; //modulation UCBRSx = 1, UCBRFx = 0, Oversampling enabled
-
+    UCA0BR0 = 26;
+    UCA0BR1 = 0;
+    UCA0MCTL = UCOS16 | (0xB << 4) | (0x08 << 8);
     UCA0CTL1 &= ~UCSWRST; //reset
 }
 
@@ -56,16 +53,20 @@ void uart_send_command(uint8_t cmd)
 
 int main(void)
 {
-    WDTCTL = WDTPW | WDTHOLD; //stop watchdog
-
     uart_init();
     timer_init();
 
     while (1)
     {
-        //test, fwd for eternity
-        uart_send_command(CMD_FWD);
-        __delay_cycles(20000);
-    }
+        //test
+        uart_send_command(CMD_BCK);
+        __delay_cycles(200000);
+        uart_send_command(CMD_LFT);
+        __delay_cycles(500000);
 
+        uart_send_command(CMD_FWD);
+        __delay_cycles(200000);
+        uart_send_command(CMD_RGT);
+        __delay_cycles(500000);
+    }
 }
