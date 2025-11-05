@@ -1,4 +1,3 @@
-
 //IR transmitter using UART
 //2400 Baud, 8-bit, no parity
 //low Buad to make it easier to capture full signal from a distance
@@ -20,7 +19,6 @@
 #define BTN_BCK BIT1 //2.1
 #define BTN_LFT BIT0 //2.0
 #define BTN_RGT BIT5 //1.5
-
 
 void uart_init(void)
 {
@@ -60,7 +58,7 @@ void uart_send_command(uint8_t cmd)
     UCA0TXBUF = cmd; //send command byte
 }
 
-void GPIO_init(void){ //internal pull ups enabled
+void GPIO_init(void){ //internal pull ups enabled on buttons
     P2DIR &= ~BTN_FWD;
     P2REN |= BTN_FWD;
     P2OUT |= BTN_FWD;
@@ -98,6 +96,6 @@ int main(void)
             uart_send_command(CMD_STOP);
         }
         
-        __delay_cycles(100000);
+        __delay_cycles(100000); //changing this may change speed?
     }
 }
