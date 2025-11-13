@@ -1,3 +1,4 @@
+//Jacob Foster
 //IR transmitter using UART
 //2400 Baud, 8-bit, no parity
 //low Buad to make it easier to capture full signal from a distance
@@ -14,11 +15,17 @@
 #define CMD_BCK 0xF1
 #define CMD_LFT 0xF2
 #define CMD_RGT 0xF3
+#define CMD_PUL 0xFA
+#define CMD_PUR 0xFB
+#define CMD_RMP 0xFC
 
 #define BTN_FWD BIT2 //2.2
 #define BTN_BCK BIT1 //2.1
 #define BTN_LFT BIT0 //2.0
 #define BTN_RGT BIT5 //1.5
+#define BTN_PUL BIT4 //2.4
+#define BTN_PUR BIT3 //2.3
+#define BTN_RMP BIT5 //2.5
 
 void uart_init(void)
 {
@@ -58,7 +65,7 @@ void uart_send_command(uint8_t cmd)
     UCA0TXBUF = cmd; //send command byte
 }
 
-void GPIO_init(void){ //internal pull ups enabled on buttons
+void GPIO_init(void){ //internal pull ups enabled on buttons, this function can be cleaned but i like the way its laid out
     P2DIR &= ~BTN_FWD;
     P2REN |= BTN_FWD;
     P2OUT |= BTN_FWD;
@@ -74,6 +81,18 @@ void GPIO_init(void){ //internal pull ups enabled on buttons
     P1DIR &= ~BTN_RGT;
     P1REN |= BTN_RGT;
     P1OUT |= BTN_RGT;
+
+    P2DIR &= ~BTN_PUR;
+    P2REN |= BTN_PUR;
+    P2OUT |= BTN_PUR;
+
+    P2DIR &= ~BTN_PUL;
+    P2REN |= BTN_PUL;
+    P2OUT |= BTN_PUL;
+
+    P2DIR &= ~BTN_RMP;
+    P2REN |= BTN_RMP;
+    P2OUT |= BTN_RMP;
 }
 
 int main(void)
@@ -83,7 +102,7 @@ int main(void)
     GPIO_init();
 
     while (1)
-    {
+    { //maybe a better way but this works without issues so bleah
         if(!(P2IN & BTN_FWD)){
             uart_send_command(CMD_FWD);
         } else if (!(P2IN & BTN_BCK)){
@@ -92,6 +111,12 @@ int main(void)
             uart_send_command(CMD_LFT);
         } else if (!(P1IN & BTN_RGT)){
             uart_send_command(CMD_RGT);
+        } else if (!(P2IN & BTN_PUL)){
+            uart_send_command(CMD_PUL);
+        } else if (!(P2IN & BTN_PUR)){
+            uart_send_command(CMD_PUR);
+        } else if (!(P2IN & BTN_RMP)){
+            uart_send_command(CMD_RMP);
         } else {
             uart_send_command(CMD_STOP);
         }
